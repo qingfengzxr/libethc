@@ -218,7 +218,7 @@ int eth_rlp_bytes(struct eth_rlp *rlp, uint8_t **bytes, size_t *len) {
     return -1;
 
   cframe = rlp->cframe;
-  
+
   if (rlp->m == ETH_RLP_ENCODE) {
     if (*len == 1 && **bytes <= 0x7F) {
       /* single 0 value is empty bytes (0x) */
@@ -493,6 +493,14 @@ int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
     return -1;
 
   if (rlp->m == ETH_RLP_ENCODE) {
+    if (*addr == NULL || strlen(*addr) == 0) {
+      // Handle empty address, support deploy contract.
+      uint8_t empty_address = 0x00;
+      uint8_t *empty_address_ptr = &empty_address;
+      size_t size = 1;
+      return eth_rlp_bytes(rlp, &empty_address_ptr, &size);
+    }
+
     if (eth_is_address(*addr) <= 0)
       return -1;
 
@@ -506,8 +514,28 @@ int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
     return 1;
   }
 
-  if (rlp->m == ETH_RLP_DECODE)
-    return eth_rlp_hex(rlp, addr, &hexlen);
+  if (rlp->m == ETH_RLP_DECODE) {
+    uint8_t *buf;
+    size_t hsize;
+
+    if (eth_rlp_bytes(rlp, &buf, &hsize) <= 0)
+        return -1;
+
+    if (hsize == 1 && buf[0] == 0x80) {
+        // Handle empty address
+        *addr = strdup("");
+        free(buf);
+        return 1;
+    }
+
+    if ((hsize = (size_t)eth_hex_from_bytes(addr, buf, hsize)) <= 0) {
+        free(buf);
+        return -1;
+    }
+
+    free(buf);
+    return 1;
+  }
 
   return -1;
 }
