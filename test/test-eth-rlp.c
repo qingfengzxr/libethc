@@ -189,9 +189,11 @@ void test_eth_rlp_hex(void) {
 }
 
 void test_eth_rlp_address(void) {
-  struct eth_rlp rlp0, rlp1;
+  struct eth_rlp rlp0, rlp1, rlp_empty;
   char *addr0 = "0x86C4dDdd08F8153E50247eaB59e500c043F99BfF",
-       *addr1, *hex0;
+       *addr1, *hex0, *hex_empty;
+  char *empty_addr = "";
+  char *decoded_addr;
 
   ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
   ok(eth_rlp_array(&rlp0) == 1);
@@ -212,6 +214,23 @@ void test_eth_rlp_address(void) {
 
   is(addr1, "86c4dddd08f8153e50247eab59e500c043f99bff");
   free(addr1);
+
+  /* Test encoding empty address */
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
+  ok(eth_rlp_address(&rlp0, &empty_addr) == 1);
+  ok(eth_rlp_to_hex(&hex_empty, &rlp0) > 0);
+  ok(eth_rlp_to_hex(&hex_empty, &rlp0) > 0);
+  ok(eth_rlp_to_hex(&hex_empty, &rlp0) > 0);
+  ok(eth_rlp_free(&rlp0) == 1);
+  is(hex_empty, "80");
+  free(hex_empty);
+
+  /* Test decoding empty address */
+  ok(eth_rlp_from_hex(&rlp_empty, hex_empty, -1) == 1);
+  ok(eth_rlp_address(&rlp_empty, &decoded_addr) == 1);
+  ok(eth_rlp_free(&rlp_empty) == 1);
+  is(decoded_addr, "");
+  free(decoded_addr);
 }
 
 void test_eth_rlp_to_hex(void) {

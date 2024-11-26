@@ -494,7 +494,7 @@ int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
 
   if (rlp->m == ETH_RLP_ENCODE) {
     if (*addr == NULL || strlen(*addr) == 0) {
-      // Handle empty address, support deploy contract.
+      /* Handle empty address, support deploy contract. */
       uint8_t empty_address = 0x00;
       uint8_t *empty_address_ptr = &empty_address;
       size_t size = 1;
@@ -519,18 +519,18 @@ int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
     size_t hsize;
 
     if (eth_rlp_bytes(rlp, &buf, &hsize) <= 0)
-        return -1;
+      return -1;
 
-    if (hsize == 1 && buf[0] == 0x80) {
-        // Handle empty address
-        *addr = strdup("");
-        free(buf);
-        return 1;
+    if (hsize == 1 && buf[0] == 0x0) {
+      /* Handle empty address */
+      *addr = strdup("");
+      free(buf);
+      return 1;
     }
 
     if ((hsize = (size_t)eth_hex_from_bytes(addr, buf, hsize)) <= 0) {
-        free(buf);
-        return -1;
+      free(buf);
+      return -1;
     }
 
     free(buf);
